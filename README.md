@@ -30,7 +30,7 @@ docs/                          saved test output and testing notes
 You need Python 3.10 or newer.
 
 ```
-git clone <repository link>
+git clone https://github.com/Lh2806/notevault.git
 cd notevault
 python -m pip install -r requirements.txt
 ```
