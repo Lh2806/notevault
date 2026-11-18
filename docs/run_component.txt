@@ -1,0 +1,16 @@
+============================= test session starts ==============================
+platform linux -- Python 3.13.18, pytest-9.1.1, pluggy-1.6.0 -- /usr/local/bin/python3
+cachedir: .pytest_cache
+rootdir: /home/claude/notevault
+configfile: pytest.ini
+plugins: platformdirs-4.13.3, anyio-4.15.1
+collecting ... collected 6 items
+
+tests/component/test_autosave_sync.py::test_autosave_uploads_and_deletes_only_the_pending_copy PASSED [ 16%]
+tests/component/test_autosave_sync.py::test_autosave_offline_keeps_pending_copy_and_note_still_opens PASSED [ 33%]
+tests/component/test_autosave_sync.py::test_retry_pending_uploads_newest_copy_when_cloud_is_back PASSED [ 50%]
+tests/component/test_search_filter.py::test_keyword_search_across_all_notes PASSED [ 66%]
+tests/component/test_search_filter.py::test_search_within_subject_includes_nested_subjects PASSED [ 83%]
+tests/component/test_search_filter.py::test_tag_filter_without_matches_and_deleted_subject PASSED [100%]
+
+============================== 6 passed in 0.11s ===============================

@@ -1,0 +1,114 @@
+============================= test session starts ==============================
+platform linux -- Python 3.13.18, pytest-9.1.1, pluggy-1.6.0 -- /usr/local/bin/python3
+cachedir: .pytest_cache
+rootdir: /home/claude/notevault
+configfile: pytest.ini
+testpaths: tests
+plugins: platformdirs-4.13.3, anyio-4.15.1
+collecting ... collected 18 items
+
+tests/component/test_autosave_sync.py::test_autosave_uploads_and_deletes_only_the_pending_copy PASSED [  5%]
+tests/component/test_autosave_sync.py::test_autosave_offline_keeps_pending_copy_and_note_still_opens PASSED [ 11%]
+tests/component/test_autosave_sync.py::test_retry_pending_uploads_newest_copy_when_cloud_is_back PASSED [ 16%]
+tests/component/test_search_filter.py::test_keyword_search_across_all_notes PASSED [ 22%]
+tests/component/test_search_filter.py::test_search_within_subject_includes_nested_subjects PASSED [ 27%]
+tests/component/test_search_filter.py::test_tag_filter_without_matches_and_deleted_subject FAILED [ 33%]
+tests/unit/test_format_range.py::test_bold_is_applied_only_to_the_chosen_range PASSED [ 38%]
+tests/unit/test_format_range.py::test_range_at_line_end_and_overlapping_ranges FAILED [ 44%]
+tests/unit/test_format_range.py::test_invalid_ranges_are_rejected PASSED [ 50%]
+tests/unit/test_line_numbering.py::test_lines_are_numbered_and_renumbered_after_insert PASSED [ 55%]
+tests/unit/test_line_numbering.py::test_empty_note_and_very_long_line PASSED [ 61%]
+tests/unit/test_line_numbering.py::test_non_text_input_and_bad_line_number_are_rejected PASSED [ 66%]
+tests/unit/test_subject_nesting.py::test_add_child_subject PASSED        [ 72%]
+tests/unit/test_subject_nesting.py::test_three_level_nest_and_moving_a_subject PASSED [ 77%]
+tests/unit/test_subject_nesting.py::test_own_parent_cycle_and_empty_name_are_rejected PASSED [ 83%]
+tests/unit/test_tags_and_keywords.py::test_keyword_and_tag_match_ignoring_case PASSED [ 88%]
+tests/unit/test_tags_and_keywords.py::test_no_match_spaces_and_duplicate_tags PASSED [ 94%]
+tests/unit/test_tags_and_keywords.py::test_empty_keyword_and_invalid_tag_are_rejected PASSED [100%]
+
+=================================== FAILURES ===================================
+_____________ test_tag_filter_without_matches_and_deleted_subject ______________
+
+search_service = <notevault.search_filter_service.SearchFilterService object at 0x7f13fffdd590>
+subject_repo = <notevault.repositories.SubjectRepository object at 0x7f13fffdd450>
+note_repo = <notevault.repositories.NoteRepository object at 0x7f140001ad50>
+library = {'school': <notevault.models.Subject object at 0x7f14001ba350>, 'software': <notevault.models.Subject object at 0x7f14...': <notevault.models.Subject object at 0x7f1400193110>, 'history': <notevault.models.Subject object at 0x7f1400193200>}
+
+    def test_tag_filter_without_matches_and_deleted_subject(search_service, subject_repo, note_repo, library):
+        # failure / unusual scenarios
+        assert titles(search_service.filter_by_tag("week 5")) == ["UML Basics"]
+        assert search_service.filter_by_tag("Week 9") == []           # tag nobody used
+        assert search_service.filter_by_tag(
+            "Week 5", subject_id=library["history"].subject_id) == [] # tag exists, wrong subject
+    
+        with pytest.raises(ValueError):
+            search_service.search("   ")                              # empty keyword
+    
+        # delete Software Engineering (and Lectures inside it)
+        software_id = library["software"].subject_id
+        subject_repo.delete(software_id)
+    
+        with pytest.raises(SubjectNotFoundError):
+            search_service.search("diagram", subject_id=software_id)
+        with pytest.raises(SubjectNotFoundError):
+            search_service.search("diagram", subject_id=library["lectures"].subject_id)
+    
+        # a new note cannot be saved into the deleted subject
+        with pytest.raises(SubjectNotFoundError):
+>           note_repo.save(Note("Late note", subject_id=software_id))
+
+tests/component/test_search_filter.py:97: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <notevault.repositories.NoteRepository object at 0x7f140001ad50>
+note = <notevault.models.Note object at 0x7f14000400c0>
+
+    def save(self, note):
+        """Save the current version of a note (insert or update)."""
+        with self.conn:
+>           self.conn.execute(
+                "INSERT INTO notes (note_id, title, subject_id) VALUES (?, ?, ?) "
+                "ON CONFLICT(note_id) DO UPDATE SET title = excluded.title, "
+                "subject_id = excluded.subject_id",
+                (note.note_id, note.title, note.subject_id),
+            )
+E           sqlite3.IntegrityError: FOREIGN KEY constraint failed
+
+src/notevault/repositories.py:67: IntegrityError
+________________ test_range_at_line_end_and_overlapping_ranges _________________
+
+    def test_range_at_line_end_and_overlapping_ranges():
+        # edge cases
+        line = NoteLine(1, "Hello world")
+    
+        line.apply_format(6, 11, "italic")       # ends exactly at the end of the line
+        assert line.styles_at(10) == {"italic"}
+    
+        line.apply_format(0, 4, "bold")
+        line.apply_format(2, 8, "bold")          # overlaps the first bold range
+        bold = [r for r in line.formats if r.style == "bold"]
+        assert bold == [FormatRange(0, 8, "bold")]   # merged into one range
+    
+        # different styles can overlap and both stay
+        assert line.styles_at(7) == {"bold", "italic"}
+    
+        # shortening the line cuts the formatting back so it never points past the text
+        line.text = "Hello"
+>       assert line.formats == [FormatRange(0, 5, "bold")]   # bold cut to 5, italic gone
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AssertionError: assert [FormatRange(...11, 'italic')] == [FormatRange(0, 5, 'bold')]
+E         
+E         At index 0 diff: FormatRange(0, 8, 'bold') != FormatRange(0, 5, 'bold')
+E         Left contains one more item: FormatRange(6, 11, 'italic')
+E         
+E         Full diff:
+E           [
+E         -     FormatRange(0, 5, 'bold'),...
+E         
+E         ...Full output truncated (5 lines hidden), use '-vv' to show
+
+tests/unit/test_format_range.py:37: AssertionError
+=========================== short test summary info ============================
+FAILED tests/component/test_search_filter.py::test_tag_filter_without_matches_and_deleted_subject
+FAILED tests/unit/test_format_range.py::test_range_at_line_end_and_overlapping_ranges
+========================= 2 failed, 16 passed in 0.13s =========================

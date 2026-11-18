@@ -1,0 +1,29 @@
+============================= test session starts ==============================
+platform linux -- Python 3.13.18, pytest-9.1.1, pluggy-1.6.0 -- /usr/local/bin/python3
+cachedir: .pytest_cache
+rootdir: /home/claude/notevault
+configfile: pytest.ini
+testpaths: tests
+plugins: platformdirs-4.13.3, anyio-4.15.1
+collecting ... collected 18 items
+
+tests/component/test_autosave_sync.py::test_autosave_uploads_and_deletes_only_the_pending_copy PASSED [  5%]
+tests/component/test_autosave_sync.py::test_autosave_offline_keeps_pending_copy_and_note_still_opens PASSED [ 11%]
+tests/component/test_autosave_sync.py::test_retry_pending_uploads_newest_copy_when_cloud_is_back PASSED [ 16%]
+tests/component/test_search_filter.py::test_keyword_search_across_all_notes PASSED [ 22%]
+tests/component/test_search_filter.py::test_search_within_subject_includes_nested_subjects PASSED [ 27%]
+tests/component/test_search_filter.py::test_tag_filter_without_matches_and_deleted_subject PASSED [ 33%]
+tests/unit/test_format_range.py::test_bold_is_applied_only_to_the_chosen_range PASSED [ 38%]
+tests/unit/test_format_range.py::test_range_at_line_end_and_overlapping_ranges PASSED [ 44%]
+tests/unit/test_format_range.py::test_invalid_ranges_are_rejected PASSED [ 50%]
+tests/unit/test_line_numbering.py::test_lines_are_numbered_and_renumbered_after_insert PASSED [ 55%]
+tests/unit/test_line_numbering.py::test_empty_note_and_very_long_line PASSED [ 61%]
+tests/unit/test_line_numbering.py::test_non_text_input_and_bad_line_number_are_rejected PASSED [ 66%]
+tests/unit/test_subject_nesting.py::test_add_child_subject PASSED        [ 72%]
+tests/unit/test_subject_nesting.py::test_three_level_nest_and_moving_a_subject PASSED [ 77%]
+tests/unit/test_subject_nesting.py::test_own_parent_cycle_and_empty_name_are_rejected PASSED [ 83%]
+tests/unit/test_tags_and_keywords.py::test_keyword_and_tag_match_ignoring_case PASSED [ 88%]
+tests/unit/test_tags_and_keywords.py::test_no_match_spaces_and_duplicate_tags PASSED [ 94%]
+tests/unit/test_tags_and_keywords.py::test_empty_keyword_and_invalid_tag_are_rejected PASSED [100%]
+
+============================== 18 passed in 0.12s ==============================
